@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Basic Panel - jQuery EasyUI Demo</title>
+	<link rel="stylesheet" type="text/css" href="js/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="js/themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="js/demo/demo.css">
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+</head>
+<body>
+	<div class="easyui-layout" style="width:720px;height:900px;">
+		<div data-options="region:'north'" style="height:50%">
+			<div id="p" class="easyui-panel" title="Rent car(租车)" style="width:100%;height:100%;padding:10px;">
+					<div style="margin:20px 0;">Customer 1. Please choose the date.</div>
+					<div style="margin:20px 0;">
+						<label>From</label>
+						<input id="start" class="easyui-datebox" currentText="Rent From" data-options="formatter:myformatter,parser:myparser" required style="width:200px">
+						<label>To</label>
+						<input id="end" class="easyui-datebox" currentText="Rent To" data-options="formatter:myformatter,parser:myparser" required style="width:200px">
+						<a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">Submit</a>
+						<a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">Clear</a>
+					</div>
+				
+					<table id="cars" class="easyui-datagrid" title="Cars(可租的车)" style="width:100%;height:100%"
+							data-options="singleSelect:true,collapsible:false,fit:true,method:'get'">
+					
+					</table>
+					
+			</div>
+		</div>
+		<div data-options="region:'south',split:true" style="height:50%">
+			<div id="p" class="easyui-panel" title="Orders(车辆租用情况)" style="width:100%;height:100%;padding:10px;">
+					
+					<table id="orders" class="easyui-datagrid" title="Orders" style="width:700px;height:100px"
+							data-options="singleSelect:true,collapsible:false,fit:true,method:'get'">
+					
+					</table>
+					
+			</div>
+		</div>
+	</div>
+	
+	
+	<script type="text/javascript">
+		var customerId=1;
+		$('#orders').datagrid({
+			collapsible:false,//是否可折叠的 
+			fit: true,//自动大小 
+		    url:'http://localhost:8080/car/allOrders?customerId='+customerId,
+			columns:[
+						[
+							{field:'customerId',title:'用户',width:80},
+			                {field:'carId',title:'汽车编码',width:80},
+							{field:'orderStatus',title:'租用状态，占用1，归还2',width:230},
+			                {field:'startDate',title:'开始时间',width:130},
+							{field:'endDate',title:'结束时间',width:130},
+			            ]
+			],
+			onLoadSuccess: function(data){
+				
+			},
+			onLoadError: function() {
+		        alert("list_data_syslog datagrid onLoadError");
+		    }
+		});
+		function submitForm(){
+			var start = $("#start").datebox("getValue").replace('-','').replace('-','');
+			var end = $("#end").datebox("getValue").replace('-','').replace('-',''); 
+			console.log(start+' '+end);
+			
+			$('#cars').datagrid({
+				collapsible:false,//是否可折叠的 
+				fit: true,//自动大小 
+			    url:'http://localhost:8080/car/cars?start='+start+'&end='+end,
+				columns:[
+							[
+								{field:'carId',title:'carId',width:280},
+				                {field:'catId',title:'model',width:280},
+				                {field:'operation',title:'operation',width:240,formatter:formatOperation}
+				            ]
+				],
+				onLoadSuccess: function(data){
+					$("a[name='opera']").linkbutton({
+						text:'Rent', 
+						iconCls:'icon-add',
+					});
+				},
+				onLoadError: function() {
+                    alert("list_data_syslog datagrid onLoadError");
+                }
+			});
+			//$('#dg').datagrid('reload');    // reload the current page data
+		}
+		
+		function formatOperation(value, row, index){
+		    var str = '<a href="#" name="opera" onclick=rent('+row.carId+','+row.catId+')></a>';
+		    return str;
+		}
+		function rent(carId, catId){
+			var start = $("#start").datebox("getValue").replace('-','').replace('-','');
+			var end = $("#end").datebox("getValue").replace('-','').replace('-',''); 
+			console.log("you rent car-"+carId+"from"+start+" to "+end);
+			
+			var param = {
+					"customerId":"1",
+					"carId":carId.toString(),
+					"start":parseInt(start),
+					"end":parseInt(end)
+			};
+			
+			$.ajax({
+				url:"http://localhost:8080/car/order",
+				type: "POST",
+				contentType: 'application/json',
+				data: JSON.stringify(param),
+				success: function(data){
+					alert("success");
+					$('#cars').datagrid('reload');    // reload the current page data
+					$('#orders').datagrid('reload');    // reload the current page data
+				},
+				error: function(data){
+					alert("error")
+				}
+			});
+			$('#cars').datagrid('reload');    // reload the current page data
+		}
+		function clearForm(){
+			$('#start').datebox('clear');
+			$('#end').datebox('clear');
+		}
+		function myformatter(date){
+			var y = date.getFullYear();
+			var m = date.getMonth()+1;
+			var d = date.getDate();
+			return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+		}
+		function myparser(s){
+			if (!s) return new Date();
+			var ss = (s.split('-'));
+			var y = parseInt(ss[0],10);
+			var m = parseInt(ss[1],10);
+			var d = parseInt(ss[2],10);
+			if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+				return new Date(y,m-1,d);
+			} else {
+				return new Date();
+			}
+		}
+	</script>
+</body>
+</html>
