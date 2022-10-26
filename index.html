@@ -48,7 +48,7 @@
 		$('#orders').datagrid({
 			collapsible:false,//是否可折叠的 
 			fit: true,//自动大小 
-		    url:'http://localhost:8080/car/allOrders?customerId='+customerId,
+		    url:'https://rental-1666797354447.azurewebsites.net/car/allOrders?customerId='+customerId,
 			columns:[
 						[
 							{field:'customerId',title:'用户',width:80},
@@ -73,7 +73,7 @@
 			$('#cars').datagrid({
 				collapsible:false,//是否可折叠的 
 				fit: true,//自动大小 
-			    url:'http://localhost:8080/car/cars?start='+start+'&end='+end,
+			    url:'https://rental-1666797354447.azurewebsites.net/car/cars?start='+start+'&end='+end,
 				columns:[
 							[
 								{field:'carId',title:'carId',width:280},
@@ -111,7 +111,7 @@
 			};
 			
 			$.ajax({
-				url:"http://localhost:8080/car/order",
+				url:"https://rental-1666797354447.azurewebsites.net/car/order",
 				type: "POST",
 				contentType: 'application/json',
 				data: JSON.stringify(param),
